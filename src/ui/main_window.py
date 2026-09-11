@@ -1,0 +1,115 @@
+import customtkinter as ctk
+
+# Устанавливаем общую тему приложения
+ctk.set_appearance_mode("dark")  # Варианты: "dark", "light", "system"
+ctk.set_default_color_theme("blue")  # Варианты темы: "blue", "green", "dark-blue"
+
+
+class MainWindow(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        # Настройки главного окна
+        self.title("Flashcards Trainer")
+        self.geometry("600x500")
+        self.resizable(False, False)  # Запретим менять размер для идеального сохранения верстки
+
+        # Текущий контейнер для активного экрана
+        self.current_frame = None
+
+        # Сразу запускаем экран главного меню
+        self.show_menu_frame()
+
+    def clear_current_frame(self):
+        """Очищает окно перед отрисовкой нового экрана"""
+        if self.current_frame is not None:
+            self.current_frame.destroy()
+
+    def show_menu_frame(self):
+        """Экран главного меню приложения"""
+        self.clear_current_frame()
+
+        self.current_frame = ctk.CTkFrame(self)
+        self.current_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Заголовок
+        title_label = ctk.CTkLabel(
+            self.current_frame,
+            text="Выучи английские слова! 🚀",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title_label.pack(pady=(40, 30))
+
+        # Кнопка: Режим Карточек
+        cards_btn = ctk.CTkButton(
+            self.current_frame,
+            text="Режим: Карточки",
+            height=45,
+            width=250,
+            font=ctk.CTkFont(size=16),
+            command=self.show_cards_frame  # Действие по клику
+        )
+        cards_btn.pack(pady=10)
+
+        # Кнопка: Добавить новое слово
+        add_word_btn = ctk.CTkButton(
+            self.current_frame,
+            text="Добавить слова в базу",
+            height=45,
+            width=250,
+            font=ctk.CTkFont(size=16),
+            fg_color="transparent",  # Делаем кнопку контурной
+            border_width=2,
+            command=lambda: print("Тут будет открытие формы добавления")
+        )
+        add_word_btn.pack(pady=10)
+
+    def show_cards_frame(self):
+        """Экран тренировки карточек"""
+        self.clear_current_frame()
+
+        self.current_frame = ctk.CTkFrame(self)
+        self.current_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Кнопка Назад в меню
+        back_btn = ctk.CTkButton(
+            self.current_frame,
+            text="⬅ Меню",
+            width=80,
+            command=self.show_menu_frame
+        )
+        back_btn.pack(anchor="w", padx=10, pady=10)
+
+        # Сама интерактивная карточка (виджет-плашка)
+        # Для имитации объема зададим чуть другой цвет фона
+        card = ctk.CTkFrame(self.current_frame, width=400, height=220, fg_color="#2B2B2B")
+        card.pack(pady=20)
+        card.pack_propagate(False)  # Запрещаем карточке сжиматься под размер текста
+
+        # Текст внутри карточки (для примера)
+        word_label = ctk.CTkLabel(
+            card,
+            text="Developer",
+            font=ctk.CTkFont(size=28, weight="bold")
+        )
+        word_label.pack(expand=True)
+
+        # Инструкция для пользователя
+        tip_label = ctk.CTkLabel(
+            self.current_frame,
+            text="Нажмите на карточку, чтобы перевернуть",
+            font=ctk.CTkFont(size=12),
+            text_color="gray"
+        )
+        tip_label.pack(pady=5)
+
+        # Панель для кнопок управления («Знаю» / «Не знаю»)
+        control_panel = ctk.CTkFrame(self.current_frame, fg_color="transparent")
+        control_panel.pack(pady=10)
+
+        wrong_btn = ctk.CTkButton(control_panel, text="❌ Не помню", fg_color="#C0392B", hover_color="#962D22",
+                                  width=120)
+        wrong_btn.pack(side="left", padx=10)
+
+        correct_btn = ctk.CTkButton(control_panel, text="✅ Знаю", fg_color="#27AE60", hover_color="#1E8449", width=120)
+        correct_btn.pack(side="left", padx=10)
