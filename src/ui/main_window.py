@@ -23,6 +23,17 @@ class MainWindow(ctk.CTk):
         # БД
         self.data = DatabaseManager()
 
+    def get_word_groups(self):
+        # подключаюсь к бд
+        self.data.connect()
+        # беру список групп из БД
+        groups_list = self.data.cur.execute("SELECT name FROM box").fetchall()
+        # привожу к нужному виду
+        groups_list = [i[0] for i in groups_list]
+        self.data.close()
+        return groups_list
+
+
     def clear_current_frame(self):
         """Очищает окно перед отрисовкой нового экрана"""
         if self.current_frame is not None:
@@ -160,15 +171,9 @@ class MainWindow(ctk.CTk):
         group_inner_frame = ctk.CTkFrame(self.current_frame, fg_color="transparent")
         group_inner_frame.pack(pady=(0, 25))
 
-        # подключаюсь к бд
-        self.data.connect()
-        # беру список групп из БД
-        self.groups_list = self.data.cur.execute("SELECT name FROM box").fetchall()
-        # привожу к нужному сиду
-        self.groups_list = [i[0] for i in self.groups_list]
-        self.data.close()
+        groups_list = self.get_word_groups()
         # виджет - список групп
-        self.group_combo = ctk.CTkComboBox(group_inner_frame, values=self.groups_list, width=180)
+        self.group_combo = ctk.CTkComboBox(group_inner_frame, values=groups_list, width=180)
         self.group_combo.pack(side="left", padx=(0, 10))
 
         # Кнопка: Добавить группу
