@@ -34,6 +34,21 @@ class MainWindow(ctk.CTk):
         self.data.close()
         return groups_list
 
+    def get_words(self, list_id=0): # list_id=0 - all words
+        self.data.connect()
+        if list_id == 0:
+            words_list = self.data.cur.execute("SELECT english FROM words").fetchall()
+            # привожу к нужному виду
+            words_list = [i[0] for i in words_list]
+            self.data.close()
+            return words_list
+        else:
+            words_list = self.data.cur.execute(f"SELECT english FROM words WHERE box_id={list_id}").fetchall()
+            # привожу к нужному виду
+            words_list = [i[0] for i in words_list]
+            self.data.close()
+            return words_list
+
     def clear_current_frame(self):
         """Очищает окно перед отрисовкой нового экрана"""
         if self.current_frame is not None:
