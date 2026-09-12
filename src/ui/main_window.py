@@ -2,8 +2,8 @@ import customtkinter as ctk
 from src.database import DatabaseManager
 
 # Устанавливаем общую тему приложения
-ctk.set_appearance_mode("dark")  # Варианты: "dark", "light", "system"
-ctk.set_default_color_theme("blue")  # Варианты темы: "blue", "green", "dark-blue"
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 
 class MainWindow(ctk.CTk):
@@ -13,15 +13,16 @@ class MainWindow(ctk.CTk):
         # Настройки главного окна
         self.title("Flashcards Trainer")
         self.geometry("600x500")
-        self.resizable(False, False)  # Запретим менять размер для идеального сохранения верстки
+        self.resizable(False, False)
 
         # Текущий контейнер для активного экрана
         self.current_frame = None
 
-        # Сразу запускаем экран главного меню
-        self.show_menu_frame()
         # БД
         self.data = DatabaseManager()
+
+        # Сразу запускаем экран главного меню
+        self.show_menu_frame()
 
     def get_word_groups(self):
         # подключаюсь к бд
@@ -32,7 +33,6 @@ class MainWindow(ctk.CTk):
         groups_list = [i[0] for i in groups_list]
         self.data.close()
         return groups_list
-
 
     def clear_current_frame(self):
         """Очищает окно перед отрисовкой нового экрана"""
@@ -54,14 +54,14 @@ class MainWindow(ctk.CTk):
         )
         title_label.pack(pady=(40, 30))
 
-        # Кнопка: Режим Карточек
+        # Кнопка: Режим Карточек (ТЕПЕРЬ ВЕДЕТ НА ВЫБОР ГРУППЫ)
         cards_btn = ctk.CTkButton(
             self.current_frame,
             text="Режим: Карточки",
             height=45,
             width=250,
             font=ctk.CTkFont(size=16),
-            command=self.show_cards_frame  # Действие по клику
+            command=self.show_select_group_frame  # <-- ИЗМЕНЕНО ТУТ
         )
         cards_btn.pack(pady=10)
 
@@ -72,14 +72,14 @@ class MainWindow(ctk.CTk):
             height=45,
             width=250,
             font=ctk.CTkFont(size=16),
-            fg_color="transparent",  # Делаем кнопку контурной
+            fg_color="transparent",
             border_width=2,
             command=lambda: self.add_word_frame()
         )
         add_word_btn.pack(pady=10)
 
-    def show_cards_frame(self):
-        """Экран тренировки карточек"""
+    def show_select_group_frame(self):
+        """Промежуточный экран выбора группы слов перед тренировкой"""
         self.clear_current_frame()
 
         self.current_frame = ctk.CTkFrame(self)
@@ -94,13 +94,69 @@ class MainWindow(ctk.CTk):
         )
         back_btn.pack(anchor="w", padx=10, pady=10)
 
-        # Сама интерактивная карточка (виджет-плашка)
-        # Для имитации объема зададим чуть другой цвет фона
-        card = ctk.CTkFrame(self.current_frame, width=400, height=220, fg_color="#2B2B2B")
-        card.pack(pady=20)
-        card.pack_propagate(False)  # Запрещаем карточке сжиматься под размер текста
+        # Заголовок экрана
+        title_label = ctk.CTkLabel(
+            self.current_frame,
+            text="Выберите группу для тренировки",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        title_label.pack(pady=(20, 20))
 
-        # Текст внутри карточки (для примера)
+        # Получаем актуальный список групп из БД
+        self.data.connect()
+        groups_list = ["All"] + self.get_word_groups()
+        self.data.close()
+
+        # Выпадающий список для выбора группы
+        self.train_group_combo = ctk.CTkComboBox(self.current_frame, values=groups_list, width=250)
+        self.train_group_combo.pack(pady=20)
+        if groups_list:
+            self.train_group_combo.set(groups_list[0])  # Ставим первую по умолчанию
+
+        # Кнопка: Начать тренировку
+        start_btn = ctk.CTkButton(
+            self.current_frame,
+            text="Начать",
+            height=40,
+            width=200,
+            font=ctk.CTkFont(size=15, weight="bold"),
+            fg_color="#27AE60",
+            hover_color="#1E8449",
+            command=lambda: self.show_cards_frame(self.train_group_combo.get())
+        )
+        start_btn.pack(pady=10)
+
+    def show_cards_frame(self, selected_group):
+        """Экран тренировки карточек (принимает выбранную группу)"""
+        self.clear_current_frame()
+
+        self.current_frame = ctk.CTkFrame(self)
+        self.current_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Кнопка Назад (теперь возвращает обратно к выбору групп)
+        back_btn = ctk.CTkButton(
+            self.current_frame,
+            text="⬅ К выбору",
+            width=80,
+            command=self.show_select_group_frame
+        )
+        back_btn.pack(anchor="w", padx=10, pady=10)
+
+        # Выводим имя текущей группы вверху экрана
+        group_label = ctk.CTkLabel(
+            self.current_frame,
+            text=f"Группа: {selected_group}",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="gray"
+        )
+        group_label.pack(pady=(0, 10))
+
+        # Сама интерактивная карточка
+        card = ctk.CTkFrame(self.current_frame, width=400, height=220, fg_color="#2B2B2B")
+        card.pack(pady=10)
+        card.pack_propagate(False)
+
+        # Текст внутри карточки (Пока статичный пример)
         word_label = ctk.CTkLabel(
             card,
             text="Developer",
@@ -128,6 +184,7 @@ class MainWindow(ctk.CTk):
         correct_btn = ctk.CTkButton(control_panel, text="✅ Знаю", fg_color="#27AE60", hover_color="#1E8449", width=120)
         correct_btn.pack(side="left", padx=10)
 
+    # Оставшиеся методы (add_word_frame, add_new_group_dialog, save_word) остаются без изменений...
     def add_word_frame(self):
         self.clear_current_frame()
 
@@ -171,9 +228,15 @@ class MainWindow(ctk.CTk):
         group_inner_frame = ctk.CTkFrame(self.current_frame, fg_color="transparent")
         group_inner_frame.pack(pady=(0, 25))
 
-        groups_list = self.get_word_groups()
+        # подключаюсь к бд
+        self.data.connect()
+        # беру список групп из БД
+        self.groups_list = self.data.cur.execute("SELECT name FROM box").fetchall()
+        # привожу к нужному сиду
+        self.groups_list = [i[0] for i in self.groups_list]
+        self.data.close()
         # виджет - список групп
-        self.group_combo = ctk.CTkComboBox(group_inner_frame, values=groups_list, width=180)
+        self.group_combo = ctk.CTkComboBox(group_inner_frame, values=self.groups_list, width=180)
         self.group_combo.pack(side="left", padx=(0, 10))
 
         # Кнопка: Добавить группу
@@ -215,8 +278,8 @@ class MainWindow(ctk.CTk):
                                     INSERT INTO box (name) VALUES (?)
                                     ''', (new_group,))
                 # закрываю и сохраняю бд
-                #self.data.con.commit()
-                #self.data.close()
+                # self.data.con.commit()
+                # self.data.close()
 
                 self.groups_list.append(new_group)
                 self.group_combo.configure(values=self.groups_list)
