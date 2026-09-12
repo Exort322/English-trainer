@@ -1,5 +1,5 @@
 import customtkinter as ctk
-
+from src.database import DatabaseManager
 # Устанавливаем общую тему приложения
 ctk.set_appearance_mode("dark")  # Варианты: "dark", "light", "system"
 ctk.set_default_color_theme("blue")  # Варианты темы: "blue", "green", "dark-blue"
@@ -19,6 +19,8 @@ class MainWindow(ctk.CTk):
 
         # Сразу запускаем экран главного меню
         self.show_menu_frame()
+        #БД
+        self.data = DatabaseManager()
 
     def clear_current_frame(self):
         """Очищает окно перед отрисовкой нового экрана"""
@@ -195,6 +197,16 @@ class MainWindow(ctk.CTk):
         if new_group and new_group.strip():
             new_group = new_group.strip()
             if new_group not in self.groups_list:
+                # подключаюсь к бд
+                self.data.connect()
+                # добавляю новую группу в бд
+                self.data.cur.execute(f'''
+                                    INSERT INTO box (name) VALUES (?)
+                                    ''', (new_group,))
+                # закрываю и сохраняю бд
+                self.data.con.commit()
+                self.data.close()
+
                 self.groups_list.append(new_group)
                 self.group_combo.configure(values=self.groups_list)
                 self.group_combo.set(new_group)  # Автоматически выбираем созданную группу
