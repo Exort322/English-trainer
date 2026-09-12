@@ -60,7 +60,7 @@ class MainWindow(ctk.CTk):
             font=ctk.CTkFont(size=16),
             fg_color="transparent",  # Делаем кнопку контурной
             border_width=2,
-            command=lambda: print("Тут будет открытие формы добавления")
+            command=lambda: self.add_word_frame()
         )
         add_word_btn.pack(pady=10)
 
@@ -113,3 +113,106 @@ class MainWindow(ctk.CTk):
 
         correct_btn = ctk.CTkButton(control_panel, text="✅ Знаю", fg_color="#27AE60", hover_color="#1E8449", width=120)
         correct_btn.pack(side="left", padx=10)
+
+    def add_word_frame(self):
+        self.clear_current_frame()
+
+        self.current_frame = ctk.CTkFrame(self)
+        self.current_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Кнопка Назад в меню
+        back_btn = ctk.CTkButton(
+            self.current_frame,
+            text="⬅ Меню",
+            width=80,
+            command=self.show_menu_frame
+        )
+        back_btn.pack(anchor="w", padx=10, pady=10)
+
+        # Заголовок экрана
+        title_label = ctk.CTkLabel(
+            self.current_frame,
+            text="Добавление нового слова 📝",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        title_label.pack(pady=(0, 20))
+
+        # Поле: Слово
+        word_label = ctk.CTkLabel(self.current_frame, text="Слово (на английском):", font=ctk.CTkFont(size=14))
+        word_label.pack(anchor="w", padx=130, pady=(5, 2))
+        self.word_entry = ctk.CTkEntry(self.current_frame, width=300, placeholder_text="Developer")
+        self.word_entry.pack(pady=(0, 10))
+
+        # Поле: Перевод
+        trans_label = ctk.CTkLabel(self.current_frame, text="Перевод (на русском):", font=ctk.CTkFont(size=14))
+        trans_label.pack(anchor="w", padx=130, pady=(5, 2))
+        self.trans_entry = ctk.CTkEntry(self.current_frame, width=300, placeholder_text="Разработчик")
+        self.trans_entry.pack(pady=(0, 10))
+
+        # Выбор группы (ComboBox)
+        group_label = ctk.CTkLabel(self.current_frame, text="Выберите группу слова:", font=ctk.CTkFont(size=14))
+        group_label.pack(anchor="w", padx=130, pady=(5, 2))
+
+        # Контейнер для выпадающего списка и кнопки добавления группы
+        group_inner_frame = ctk.CTkFrame(self.current_frame, fg_color="transparent")
+        group_inner_frame.pack(pady=(0, 25))
+
+        # Список доступных групп (для примера)
+        self.groups_list = ["Общие", "IT/Программирование", "Путешествия", "Разговорные"]
+
+        self.group_combo = ctk.CTkComboBox(group_inner_frame, values=self.groups_list, width=180)
+        self.group_combo.pack(side="left", padx=(0, 10))
+
+        # Кнопка: Добавить группу
+        add_group_btn = ctk.CTkButton(
+            group_inner_frame,
+            text="+ Группа",
+            width=110,
+            fg_color="transparent",
+            border_width=1,
+            command=self.add_new_group_dialog
+        )
+        add_group_btn.pack(side="left")
+
+        # Кнопка: Сохранить слово
+        save_btn = ctk.CTkButton(
+            self.current_frame,
+            text="Сохранить слово",
+            height=40,
+            width=300,
+            font=ctk.CTkFont(size=15, weight="bold"),
+            fg_color="#27AE60",
+            hover_color="#1E8449",
+            command=self.save_word
+        )
+        save_btn.pack(pady=10)
+
+    def add_new_group_dialog(self):
+        """Всплывающее окно для добавления новой группы"""
+        dialog = ctk.CTkInputDialog(text="Введите название новой группы:", title="Новая группа")
+        new_group = dialog.get_input()
+
+        if new_group and new_group.strip():
+            new_group = new_group.strip()
+            if new_group not in self.groups_list:
+                self.groups_list.append(new_group)
+                self.group_combo.configure(values=self.groups_list)
+                self.group_combo.set(new_group)  # Автоматически выбираем созданную группу
+
+    def save_word(self):
+        """Логика сохранения слова (пока просто вывод в консоль)"""
+        word = self.word_entry.get().strip()
+        translation = self.trans_entry.get().strip()
+        group = self.group_combo.get()
+
+        if not word or not translation:
+            print("Ошибка: Заполните все поля!")
+            return
+
+        print(f"Сохранено: {word} — {translation} [Группа: {group}]")
+
+        # Очищаем поля ввода после успешного сохранения
+        self.word_entry.delete(0, 'end')
+        self.trans_entry.delete(0, 'end')
+
+
