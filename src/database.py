@@ -36,7 +36,7 @@ class DatabaseManager:
                         )
                 ''')
         self.cur.execute('''
-        INSERT INTO box (id, name) VALUES (1, "Unsorted")
+        INSERT OR IGNORE INTO box (id, name) VALUES (1, "Unsorted")
         ''')
 
         self.cur.execute('''
