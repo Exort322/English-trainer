@@ -2,10 +2,11 @@ import sqlite3
 import sqlite3 as sq
 import os
 
+
 class DatabaseManager:
     def __init__(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.db_path = os.path.join(base_dir, 'data', 'words.db') # путь к db
+        self.db_path = os.path.join(base_dir, 'data', 'words.db')  # путь к db
 
     def connect(self):
         try:
@@ -29,14 +30,24 @@ class DatabaseManager:
         # russian - перевод
         # box - номер коробки (нужен для алгоритма повторений, например Leitner System)
         self.cur.execute('''
-            CREATE TABLE IF NOT EXISTS words (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                english TEXT NOT NULL UNIQUE,
-                russian TEXT NOT NULL,
-                box INTEGER DEFAULT 1
-            )
+                    CREATE TABLE IF NOT EXISTS box (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL UNIQUE 
+                        )
+                ''')
+        self.cur.execute('''
+        INSERT INTO box (id, name) VALUES (1, "Unsorted")
         ''')
+
+        self.cur.execute('''
+                    CREATE TABLE IF NOT EXISTS words (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        english TEXT NOT NULL UNIQUE,
+                        russian TEXT NOT NULL,
+                        box_id INTEGER DEFAULT 1,
+                        FOREIGN KEY (box_id) REFERENCES box(id) ON DELETE SET DEFAULT
+                        )
+                ''')
 
         self.con.commit()
         self.close()
-
