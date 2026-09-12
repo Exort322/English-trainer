@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from src.database import DatabaseManager
+
 # Устанавливаем общую тему приложения
 ctk.set_appearance_mode("dark")  # Варианты: "dark", "light", "system"
 ctk.set_default_color_theme("blue")  # Варианты темы: "blue", "green", "dark-blue"
@@ -19,7 +20,7 @@ class MainWindow(ctk.CTk):
 
         # Сразу запускаем экран главного меню
         self.show_menu_frame()
-        #БД
+        # БД
         self.data = DatabaseManager()
 
     def clear_current_frame(self):
@@ -159,9 +160,14 @@ class MainWindow(ctk.CTk):
         group_inner_frame = ctk.CTkFrame(self.current_frame, fg_color="transparent")
         group_inner_frame.pack(pady=(0, 25))
 
-        # Список доступных групп (для примера)
-        self.groups_list = ["Общие", "IT/Программирование", "Путешествия", "Разговорные"]
-
+        # подключаюсь к бд
+        self.data.connect()
+        # беру список групп из БД
+        self.groups_list = self.data.cur.execute("SELECT name FROM box").fetchall()
+        # привожу к нужному сиду
+        self.groups_list = [i[0] for i in self.groups_list]
+        self.data.close()
+        # вмджет - список групп
         self.group_combo = ctk.CTkComboBox(group_inner_frame, values=self.groups_list, width=180)
         self.group_combo.pack(side="left", padx=(0, 10))
 
@@ -226,5 +232,3 @@ class MainWindow(ctk.CTk):
         # Очищаем поля ввода после успешного сохранения
         self.word_entry.delete(0, 'end')
         self.trans_entry.delete(0, 'end')
-
-
