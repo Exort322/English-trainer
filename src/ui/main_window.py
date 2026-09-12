@@ -143,13 +143,13 @@ class MainWindow(ctk.CTk):
         # Поле: Слово
         word_label = ctk.CTkLabel(self.current_frame, text="Слово (на английском):", font=ctk.CTkFont(size=14))
         word_label.pack(anchor="w", padx=130, pady=(5, 2))
-        self.word_entry = ctk.CTkEntry(self.current_frame, width=300, placeholder_text="Developer")
+        self.word_entry = ctk.CTkEntry(self.current_frame, width=300, placeholder_text="Word")
         self.word_entry.pack(pady=(0, 10))
 
         # Поле: Перевод
         trans_label = ctk.CTkLabel(self.current_frame, text="Перевод (на русском):", font=ctk.CTkFont(size=14))
         trans_label.pack(anchor="w", padx=130, pady=(5, 2))
-        self.trans_entry = ctk.CTkEntry(self.current_frame, width=300, placeholder_text="Разработчик")
+        self.trans_entry = ctk.CTkEntry(self.current_frame, width=300, placeholder_text="Перевод")
         self.trans_entry.pack(pady=(0, 10))
 
         # Выбор группы (ComboBox)
@@ -167,7 +167,7 @@ class MainWindow(ctk.CTk):
         # привожу к нужному сиду
         self.groups_list = [i[0] for i in self.groups_list]
         self.data.close()
-        # вмджет - список групп
+        # виджет - список групп
         self.group_combo = ctk.CTkComboBox(group_inner_frame, values=self.groups_list, width=180)
         self.group_combo.pack(side="left", padx=(0, 10))
 
@@ -210,8 +210,8 @@ class MainWindow(ctk.CTk):
                                     INSERT INTO box (name) VALUES (?)
                                     ''', (new_group,))
                 # закрываю и сохраняю бд
-                self.data.con.commit()
-                self.data.close()
+                #self.data.con.commit()
+                #self.data.close()
 
                 self.groups_list.append(new_group)
                 self.group_combo.configure(values=self.groups_list)
@@ -219,15 +219,24 @@ class MainWindow(ctk.CTk):
 
     def save_word(self):
         """Логика сохранения слова (пока просто вывод в консоль)"""
-        word = self.word_entry.get().strip()
+        word_eng = self.word_entry.get().strip()
         translation = self.trans_entry.get().strip()
         group = self.group_combo.get()
 
-        if not word or not translation:
+        if not word_eng or not translation:
             print("Ошибка: Заполните все поля!")
             return
+        # подключение к бд
+        self.data.connect()
+        # забираю id групп из бд
+        box_id = self.data.cur.execute("SELECT id FROM box WHERE name=?", (group,)).fetchone()[0]
+        # добавление слова в бд
+        self.data.cur.execute('''INSERT INTO words (english, russian, box_id) VALUES (?, ?, ?)''',
+                              (word_eng, translation, box_id))
+        self.data.con.commit()
+        self.data.close()
 
-        print(f"Сохранено: {word} — {translation} [Группа: {group}]")
+        print(f"Сохранено: {word_eng} — {translation} [Группа: {group}]")
 
         # Очищаем поля ввода после успешного сохранения
         self.word_entry.delete(0, 'end')
