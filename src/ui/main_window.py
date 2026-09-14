@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from src.database import DatabaseManager
+from src.ui.training_window import TrainingFrame
 
 # Устанавливаем общую тему приложения
 ctk.set_appearance_mode("dark")
@@ -18,8 +19,10 @@ class MainWindow(ctk.CTk):
         # Текущий контейнер для активного экрана
         self.current_frame = None
 
-        # БД
+        # создаем/подключаемся к БД
         self.data = DatabaseManager()
+        self.data.connect()
+        self.data.create_tables()
 
         # Сразу запускаем экран главного меню
         self.show_menu_frame()
@@ -34,16 +37,16 @@ class MainWindow(ctk.CTk):
         self.data.close()
         return groups_list
 
-    def get_words(self, list_id=0): # list_id=0 - all words
+    def get_words(self, group_id=0):  # list_id=0 - all words
         self.data.connect()
-        if list_id == 0:
+        if group_id == 0:
             words_list = self.data.cur.execute("SELECT english FROM words").fetchall()
             # привожу к нужному виду
             words_list = [i[0] for i in words_list]
             self.data.close()
             return words_list
         else:
-            words_list = self.data.cur.execute(f"SELECT english FROM words WHERE box_id={list_id}").fetchall()
+            words_list = self.data.cur.execute(f"SELECT english FROM words WHERE box_id={group_id}").fetchall()
             # привожу к нужному виду
             words_list = [i[0] for i in words_list]
             self.data.close()
@@ -142,64 +145,13 @@ class MainWindow(ctk.CTk):
         start_btn.pack(pady=10)
 
     def show_cards_frame(self, selected_group):
-        """Экран тренировки карточек (принимает выбранную группу)"""
+        """Экран тренировки карточек"""
         self.clear_current_frame()
 
-        self.current_frame = ctk.CTkFrame(self)
+
+        self.current_frame = TrainingFrame(self, selected_group, self.data)
         self.current_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Кнопка Назад (теперь возвращает обратно к выбору групп)
-        back_btn = ctk.CTkButton(
-            self.current_frame,
-            text="⬅ К выбору",
-            width=80,
-            command=self.show_select_group_frame
-        )
-        back_btn.pack(anchor="w", padx=10, pady=10)
-
-        # Выводим имя текущей группы вверху экрана
-        group_label = ctk.CTkLabel(
-            self.current_frame,
-            text=f"Группа: {selected_group}",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color="gray"
-        )
-        group_label.pack(pady=(0, 10))
-
-        # Сама интерактивная карточка
-        card = ctk.CTkFrame(self.current_frame, width=400, height=220, fg_color="#2B2B2B")
-        card.pack(pady=10)
-        card.pack_propagate(False)
-
-        # Текст внутри карточки (Пока статичный пример)
-        word_label = ctk.CTkLabel(
-            card,
-            text="Developer",
-            font=ctk.CTkFont(size=28, weight="bold")
-        )
-        word_label.pack(expand=True)
-
-        # Инструкция для пользователя
-        tip_label = ctk.CTkLabel(
-            self.current_frame,
-            text="Нажмите на карточку, чтобы перевернуть",
-            font=ctk.CTkFont(size=12),
-            text_color="gray"
-        )
-        tip_label.pack(pady=5)
-
-        # Панель для кнопок управления («Знаю» / «Не знаю»)
-        control_panel = ctk.CTkFrame(self.current_frame, fg_color="transparent")
-        control_panel.pack(pady=10)
-
-        wrong_btn = ctk.CTkButton(control_panel, text="❌ Не помню", fg_color="#C0392B", hover_color="#962D22",
-                                  width=120)
-        wrong_btn.pack(side="left", padx=10)
-
-        correct_btn = ctk.CTkButton(control_panel, text="✅ Знаю", fg_color="#27AE60", hover_color="#1E8449", width=120)
-        correct_btn.pack(side="left", padx=10)
-
-    # Оставшиеся методы (add_word_frame, add_new_group_dialog, save_word) остаются без изменений...
     def add_word_frame(self):
         self.clear_current_frame()
 
