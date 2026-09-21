@@ -27,6 +27,7 @@ class TrainingFrame(ctk.CTkFrame):
         print(self.get_translation("qwe"))
 
     def get_card(self):
+        # добавить проверку не пустой ли список
         word = choice(self.words)
         self.words.remove(word)
         return word
@@ -37,7 +38,7 @@ class TrainingFrame(ctk.CTkFrame):
             translation = self.data.cur.execute("SELECT russian FROM words WHERE english=?", (word,)).fetchone()[0]
             self.data.close()
             return translation
-        except sqlite3.Error as e:
+        except (sqlite3.Error, TypeError) as e:
             self.data.close()
             print(f"Не найден перевод {word}")
 

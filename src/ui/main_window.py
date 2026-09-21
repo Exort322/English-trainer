@@ -46,7 +46,7 @@ class MainWindow(ctk.CTk):
             self.data.close()
             return words_list
         else:
-            words_list = self.data.cur.execute(f"SELECT english FROM words WHERE box_id={group_id}").fetchall()
+            words_list = self.data.cur.execute("SELECT english FROM words WHERE box_id=?", (group_id,)).fetchall()
             # привожу к нужному виду
             words_list = [i[0] for i in words_list]
             self.data.close()
@@ -126,7 +126,7 @@ class MainWindow(ctk.CTk):
         self.data.close()
 
         # Выпадающий список для выбора группы
-        self.train_group_combo = ctk.CTkComboBox(self.current_frame, values=groups_list, width=250)
+        self.train_group_combo = ctk.CTkComboBox(self.current_frame, values=groups_list, width=250, state="readonly")
         self.train_group_combo.pack(pady=20)
         if groups_list:
             self.train_group_combo.set(groups_list[0])  # Ставим первую по умолчанию
@@ -203,7 +203,7 @@ class MainWindow(ctk.CTk):
         self.groups_list = [i[0] for i in self.groups_list]
         self.data.close()
         # виджет - список групп
-        self.group_combo = ctk.CTkComboBox(group_inner_frame, values=self.groups_list, width=180)
+        self.group_combo = ctk.CTkComboBox(group_inner_frame, values=self.groups_list, width=180, state="readonly")
         self.group_combo.pack(side="left", padx=(0, 10))
 
         # Кнопка: Добавить группу
@@ -245,8 +245,8 @@ class MainWindow(ctk.CTk):
                                     INSERT INTO box (name) VALUES (?)
                                     ''', (new_group,))
                 # закрываю и сохраняю бд
-                # self.data.con.commit()
-                # self.data.close()
+                self.data.con.commit()
+                self.data.close()
 
                 self.groups_list.append(new_group)
                 self.group_combo.configure(values=self.groups_list)
