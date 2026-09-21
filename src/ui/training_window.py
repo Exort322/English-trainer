@@ -71,15 +71,17 @@ class TrainingFrame(ctk.CTkFrame):
         self.word_label.configure(text=self.current_word, text_color="white")
 
     def flip_card(self, event=None):
-        """Переворачивает карточку (меняет текст английский/русский)"""
+        """Переворачивает карточку (меняет текст английский/русский и цвет силуэта)"""
         if not self.current_word:
             return
 
         if self.is_flipped:
             self.word_label.configure(text=self.current_word, text_color="white")
+            self.card.configure(border_color="#404040")  # Возвращаем стандартный силуэт
             self.is_flipped = False
         else:
             self.word_label.configure(text=self.current_translation, text_color="#2ECC71")
+            self.card.configure(border_color="#3B8ED0")  # Подсвечиваем силуэт зеленым
             self.is_flipped = True
 
     def mark_correct(self):
@@ -131,7 +133,16 @@ class TrainingFrame(ctk.CTkFrame):
         group_label.pack(pady=(0, 10))
 
         # Карточка (CTkFrame)
-        self.card = ctk.CTkFrame(self, width=400, height=220, fg_color="#2B2B2B", cursor="hand2")
+        self.card = ctk.CTkFrame(
+            self,
+            width=400,
+            height=220,
+            fg_color="#1E1E1E",  # фон
+            border_width=2,  # Толщина линии силуэта
+            border_color="#404040",  # Серый цвет линии
+            corner_radius=15,  # Радиус закругления краев
+            cursor="hand2"
+        )
         self.card.pack(pady=10)
         self.card.pack_propagate(False)
 
